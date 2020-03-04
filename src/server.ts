@@ -1,16 +1,12 @@
 import * as express from 'express'
 import * as asyncHandler from 'express-async-handler'
 import * as puppeteer from 'puppeteer'
-import { Cluster } from 'puppeteer-cluster'
-
-import ReadableStream = NodeJS.ReadableStream
 import * as stream from 'stream'
-
-const bodyParser = require('body-parser')
+import { Cluster } from 'puppeteer-cluster'
 
 const port = process.env.PORT || 4500
 const env = process.env.NODE_ENV || 'development'
-const defaultTimeout = 12000 * 1000
+const defaultTimeout = 5000
 const defaultFormat = 'A4'
 const defaultPrintBackground = true
 
@@ -23,12 +19,21 @@ export function app() {
     '/convert',
     asyncHandler(async (req, res) => {
       const url = req.query.url
-      const timeout = req.query.timeout || defaultTimeout
+      const timeout = req.query.timeout
+        ? parseInt(req.query.timeout)
+        : defaultTimeout
       const format = req.query.format || defaultFormat
-      const printBackground = req.query.printBackground ? req.query.printBackground === 'true' : defaultPrintBackground
+      const printBackground = req.query.printBackground
+        ? req.query.printBackground === 'true'
+        : defaultPrintBackground
 
-      const target = 'result.pdf'
-      const buff = await cluster.execute({ url, timeout, format, printBackground })
+      const target = `result_${Date.now()}.pdf`
+      const buff = await cluster.execute({
+        url,
+        timeout,
+        format,
+        printBackground,
+      })
 
       res
         .set('Content-disposition', 'attachment; filename=' + target)
@@ -54,7 +59,9 @@ async function run() {
   }
 
   if (env === 'development') {
-    options['executablePath'] = puppeteer.executablePath().replace('dist/server', 'node_modules/puppeteer')
+    options['executablePath'] = puppeteer
+      .executablePath()
+      .replace('dist/server', 'node_modules/puppeteer')
   }
 
   cluster = await Cluster.launch({
@@ -94,9 +101,9 @@ async function shutdown(signal) {
   process.exit(0)
 }
 
-run()
-
 // Clean up resource when received signal to shutdown
 process.on('SIGINT', shutdown)
 process.on('SIGCHLD', shutdown)
 process.on('SIGTERM', shutdown)
+
+run()
