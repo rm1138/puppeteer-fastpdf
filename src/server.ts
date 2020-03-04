@@ -4,7 +4,7 @@ import * as puppeteer from 'puppeteer'
 import * as stream from 'stream'
 import { Cluster } from 'puppeteer-cluster'
 
-const port = process.env.PORT || 4500
+const port = process.env.PORT || 8080
 const env = process.env.NODE_ENV || 'development'
 const defaultTimeout = 5000
 const defaultFormat = 'A4'

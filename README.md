@@ -26,7 +26,7 @@ yarn start
 
 ## Usage
 
-`http://localhost:8080/convert?url=<encoded-target-url>`
+`GET: http://localhost:8080/convert?url=<encoded-target-url>`
 
 | Query           | Description        | Default | Avaliable options                    |
 | --------------- | ------------------ | ------- | ------------------------------------ |
