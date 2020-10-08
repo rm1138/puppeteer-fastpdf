@@ -4,9 +4,9 @@ import * as puppeteer from 'puppeteer'
 import * as stream from 'stream'
 import { Cluster } from 'puppeteer-cluster'
 
-const port = process.env.PORT || 8080
+const port = process.env.PORT || 8081
 const env = process.env.NODE_ENV || 'development'
-const defaultTimeout = 5000
+const defaultTimeout = 1000 * 60
 const defaultFormat = 'A4'
 const defaultPrintBackground = true
 
@@ -19,9 +19,7 @@ export function app() {
     '/convert',
     asyncHandler(async (req, res) => {
       const url = req.query.url
-      const timeout = req.query.timeout
-        ? parseInt(req.query.timeout)
-        : defaultTimeout
+      const timeout = parseInt(req.query.timeout ?? defaultTimeout)
       const format = req.query.format || defaultFormat
       const printBackground = req.query.printBackground
         ? req.query.printBackground === 'true'
@@ -74,11 +72,7 @@ async function run() {
   await cluster.task(async ({ page, data }) => {
     const { url, timeout, format, printBackground } = data
     await page.goto(url)
-    if (!timeout) {
-      await page.waitForSelector('#ready', { timeout: defaultTimeout })
-    } else {
-      await sleep(timeout)
-    }
+    await page.waitForSelector('#content-ready', { timeout })
     return await page.pdf({ format, printBackground })
   })
 
